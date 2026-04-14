@@ -19,7 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 3. BASE DE DADOS LOCAL (18 Nomes - Sem assinatura fixa)
+// 3. BASE DE DADOS LOCAL (18 Nomes)
 const bancoDeDados = {
     "0001143260": { nome: "GERALDO PEREIRA XAVIER" },
     "0001194553": { nome: "ANA BEATRIZ ROCHA BARBOSA" },
@@ -76,6 +76,13 @@ const btnFecharModal = document.getElementById('btn-fechar-modal');
 const btnLimparModal = document.getElementById('btn-limpar-modal');
 const btnSalvarModal = document.getElementById('btn-salvar-modal');
 
+// FOTO (ANEXO)
+const inputFoto = document.getElementById('input-foto');
+const btnTirarFoto = document.getElementById('btn-tirar-foto');
+const avisoFoto = document.getElementById('aviso-foto');
+const pdfPaginaFoto = document.getElementById('pdf-pagina-foto');
+const pdfImagemAnexo = document.getElementById('pdf-imagem-anexo');
+
 // Variáveis de Controle
 let colaboradorAtual = null;
 let listaLiberada = false; 
@@ -88,7 +95,7 @@ let desenhando = false;
 const dataHoje = new Date().toLocaleDateString('pt-BR');
 dataAtualText.innerText = dataHoje;
 
-// 6. LÓGICA DE LOGIN (Agora segura!)
+// 6. LÓGICA DE LOGIN (Segura pelo Firebase)
 formLogin.addEventListener('submit', async (e) => {
     e.preventDefault();
     const senhaDigitada = document.getElementById('senha-login').value;
@@ -107,6 +114,7 @@ formLogin.addEventListener('submit', async (e) => {
             painelProfessor.style.display = 'flex'; 
             btnFinalizar.style.display = 'inline-block'; 
             btnGerarPdf.style.display = 'inline-block'; 
+            btnTirarFoto.style.display = 'inline-block'; // Mostra botão de foto
             
             usuarioLogadoTexto.innerText = "Professor"; 
             msgErro.style.display = 'none';
@@ -129,6 +137,7 @@ btnEntrarAluno.addEventListener('click', () => {
     painelProfessor.style.display = 'none'; 
     btnFinalizar.style.display = 'none'; 
     btnGerarPdf.style.display = 'none'; 
+    btnTirarFoto.style.display = 'none'; // Esconde botão de foto
     usuarioLogadoTexto.innerText = "Acesso de Colaborador/Aluno";
 });
 
@@ -291,7 +300,26 @@ function limparFormulario() {
     if (!matriculaInput.disabled) matriculaInput.focus(); 
 }
 
-// 9. LÓGICA DE GERAÇÃO DO PDF 
+// 9. LÓGICA DE FOTO
+btnTirarFoto.addEventListener('click', () => {
+    inputFoto.click(); 
+});
+
+inputFoto.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            pdfImagemAnexo.src = event.target.result; 
+            pdfPaginaFoto.style.display = 'block'; 
+            avisoFoto.style.display = 'block'; 
+            btnTirarFoto.innerText = "🔄 Trocar Foto"; 
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// 10. LÓGICA DE GERAÇÃO DO PDF
 btnGerarPdf.addEventListener('click', () => {
     document.getElementById('pdf-curso').innerText = ""; 
     document.getElementById('pdf-data').innerText = dataHoje;
@@ -314,7 +342,6 @@ btnGerarPdf.addEventListener('click', () => {
             const nomePessoa = trsPresentes[i].querySelectorAll('td')[1].innerText;
             const assinaturaImg = trsPresentes[i].querySelectorAll('td')[2].innerHTML;
             
-            // Ajustado para max-height 26px e margem negativa para aumentar a assinatura
             tr.innerHTML = `
                 <td>${numeroLinha}</td>
                 <td>${matricula}</td>
@@ -359,7 +386,7 @@ btnGerarPdf.addEventListener('click', () => {
     }, 150); 
 });
 
-// 10. FINALIZAR O DIA
+// 11. FINALIZAR O DIA
 btnFinalizar.addEventListener('click', async () => {
     if (presentes.size === 0) { alert("A lista está vazia."); return; }
 
@@ -381,10 +408,18 @@ btnFinalizar.addEventListener('click', async () => {
     await Promise.all(promessasDeletar);
     
     limparFormulario();
+
+    // Resetar Foto
+    inputFoto.value = "";
+    pdfImagemAnexo.src = "";
+    pdfPaginaFoto.style.display = 'none';
+    avisoFoto.style.display = 'none';
+    btnTirarFoto.innerText = "📷 Anexar Foto";
+
     alert(`DSS Finalizado com sucesso!\nO próximo apresentador já foi escalado para amanhã.`);
 });
 
-// 11. BLOQUEIO DE INSPECIONAR ELEMENTO (Segurança Front-end)
+// 12. BLOQUEIO DE INSPECIONAR ELEMENTO (Segurança Front-end)
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault(); 
 });
