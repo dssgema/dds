@@ -364,7 +364,8 @@ btnGerarPdf.addEventListener('click', () => {
         filename:     `DDS_SENAI_${dataHoje.replace(/\//g, '-')}.pdf`,
         image:        { type: 'jpeg', quality: 1 },
         html2canvas:  { scale: 2, useCORS: true }, 
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: 'css', before: '#pdf-pagina-foto' } // <-- Essa é a mágica!
     };
 
     const textoOriginal = btnGerarPdf.innerText;
